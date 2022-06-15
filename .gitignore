@@ -1,0 +1,5 @@
+*.rpgsave
+*.json
+rpgsave.toml
+*.backup-*
+*.exe
