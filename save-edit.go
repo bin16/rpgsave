@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/tidwall/gjson"
 )
@@ -11,11 +12,11 @@ func (s *Save) Actor(index int) *Save {
 	return s
 }
 
-func (s *Save) Gold() float64 {
-	return gjson.Get(s.json, "party._gold").Float()
+func (s *Save) Gold() int64 {
+	return int64(gjson.Get(s.json, "party._gold").Float())
 }
 
-func (s *Save) SetGold(num int) {
+func (s *Save) SetGold(num int64) {
 	s.setData("party._gold", num)
 }
 
@@ -51,12 +52,12 @@ const (
 	LUK   = 7
 )
 
-func (s *Save) Extra(name int) float64 {
+func (s *Save) Extra(name int) int64 {
 	path := fmt.Sprintf("actors._data.%0d._paramPlus.%d", s.actorIndex, name)
-	return gjson.Get(s.json, path).Float()
+	return gjson.Get(s.json, path).Int()
 }
 
-func (s *Save) SetExtra(name int, num float64) {
+func (s *Save) SetExtra(name int, num int64) {
 	path := fmt.Sprintf("actors._data.%0d._paramPlus.%d", s.actorIndex, name)
 	s.setData(path, num)
 }
@@ -76,7 +77,7 @@ func (d *Save) Print() {
 	fmt.Printf("NAME: %s\n", name)
 
 	gold := d.Gold()
-	fmt.Printf("Gold: %.0f\n", gold)
+	fmt.Printf("Gold: %d\n", gold)
 
 	exp := d.Exp()
 	fmt.Printf("Exp: %d\n", exp)
@@ -100,4 +101,48 @@ func (d *Save) Print() {
 	agi := d.Extra(AGI)
 	luk := d.Extra(LUK)
 	fmt.Printf("AGI: %.0f, LUK: %.0f\n", agi, luk)
+}
+
+func (s *Save) Items() []Item {
+	items := []Item{}
+
+	itemMap := gjson.Get(s.json, "party._items").Map()
+	for k, v := range itemMap {
+		info := GAME.itemMap[k]
+		u := Item{
+			ID:          info.ID,
+			Name:        info.Name,
+			Description: info.Description,
+			count:       v.Int(),
+		}
+
+		items = append(items, u)
+	}
+
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].ID < items[j].ID
+	})
+
+	return items
+}
+
+func (s *Save) SetItem(id, num int64) {
+	path := fmt.Sprintf("party._items.%0d", id)
+	s.setData(path, num)
+}
+
+func (s *Save) Item(id int64) *Item {
+	info, ok := GAME.itemMap[fmt.Sprintf("%d", id)]
+	if !ok {
+		return nil
+	}
+
+	path := fmt.Sprintf("party._items.%0d", id)
+	num := gjson.Get(s.json, path).Int()
+	return &Item{
+		ID:          id,
+		Name:        info.Name,
+		Description: info.Description,
+		count:       num,
+	}
 }

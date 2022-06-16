@@ -20,19 +20,19 @@ const (
 )
 
 func init() {
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		DATA = initApp(configPath)
-		return
-	}
+	// if _, err := os.Stat(configPath); os.IsNotExist(err) {
+	// 	DATA = initApp(configPath)
+	// 	return
+	// }
 
-	d, err := loadApp(configPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// d, err := loadApp(configPath)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 
-	DATA = d
-	DATA.Load()
-	DATA.save.Actor(DATA.Actor.Index)
+	// DATA = d
+	// DATA.Load()
+	// DATA.save.Actor(DATA.Actor.Index)
 }
 
 type AppConfig struct {
